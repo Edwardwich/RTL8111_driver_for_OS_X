@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D3152F9A2D52DBFB001D6C0F /* libkmod.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D3667CAC2D46C92800F47BA2 /* libkmod.a */; };
+		C5E6EE152D99351B00C3A647 /* libkmod.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D36677742D46C91E00F47BA2 /* libkmod.a */; };
 		D366818D2D46D02D00F47BA2 /* RealtekRTL8111.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D37BD69716C6065300C255A2 /* RealtekRTL8111.cpp */; };
 		D366818E2D46D02D00F47BA2 /* RealtekRTL8111Linux-804704.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D3C8EF0F22FA0D0C00F3BF68 /* RealtekRTL8111Linux-804704.cpp */; };
 		D366818F2D46D02D00F47BA2 /* RealtekRTL8111Hardware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D3C8EF0C22FA0BDF00F3BF68 /* RealtekRTL8111Hardware.cpp */; };
@@ -1294,7 +1294,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D3152F9A2D52DBFB001D6C0F /* libkmod.a in Frameworks */,
+				C5E6EE152D99351B00C3A647 /* libkmod.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3571,7 +3571,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1620;
 				ORGANIZATIONNAME = "Laura Müller";
 				TargetAttributes = {
 					D36681842D46CA8D00F47BA2 = {
@@ -3680,8 +3680,12 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RealtekRTL8111/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2013 Laura Müller. All rights reserved.";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/MacKernelSDK/Library/x86_64",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 2.5.0d4;
 				MODULE_NAME = com.insanelymac.RealtekRTL8111;
 				MODULE_START = 0;
@@ -3727,8 +3731,12 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RealtekRTL8111/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2013 Laura Müller. All rights reserved.";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/MacKernelSDK/Library/x86_64",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 2.5.0d4;
 				MODULE_NAME = com.insanelymac.RealtekRTL8111;
 				MODULE_START = 0;
