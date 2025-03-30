@@ -29,15 +29,15 @@ bool RTL8111::initPCIConfigSpace(IOPCIDevice *provider)
     /* Setup power management. */
     if (provider->findPCICapability(kIOPCIPowerManagementCapability, &pmCapOffset)) {
         pmCap = provider->extendedConfigRead16(pmCapOffset + kIOPCIPMCapability);
-        DebugLog("[RealtekRTL8111]: PCI power management capabilities: 0x%x.\n", pmCap);
+        DebugLog("PCI power management capabilities: 0x%x.\n", pmCap);
         
         if (pmCap & kPCIPMCPMESupportFromD3Cold) {
             wolCapable = true;
-            DebugLog("[RealtekRTL8111]: PME# from D3 (cold) supported.\n");
+            DebugLog("PME# from D3 (cold) supported.\n");
         }
         pciPMCtrlOffset = pmCapOffset + kIOPCIPMControl;
     } else {
-        IOLog("[RealtekRTL8111]: PCI power management unsupported.\n");
+        IOLog("PCI power management unsupported.\n");
     }
     provider->enablePCIPowerManagement(kPCIPMCSPowerStateD0);
     
@@ -45,13 +45,13 @@ bool RTL8111::initPCIConfigSpace(IOPCIDevice *provider)
     if (provider->findPCICapability(kIOPCIPCIExpressCapability, &pcieCapOffset)) {
         pcieLinkCap = provider->configRead32(pcieCapOffset + kIOPCIELinkCapability);
         pcieLinkCtl = provider->configRead16(pcieCapOffset + kIOPCIELinkControl);
-        DebugLog("[RealtekRTL8111]: PCIe link capabilities: 0x%08x, link control: 0x%04x.\n", pcieLinkCap, pcieLinkCtl);
+        DebugLog("PCIe link capabilities: 0x%08x, link control: 0x%04x.\n", pcieLinkCap, pcieLinkCtl);
         
         if (disableASPM) {
-            IOLog("[RealtekRTL8111]: Disable PCIe ASPM.\n");
+            IOLog("Disable PCIe ASPM.\n");
             provider->setASPMState(this, 0);
         } else {
-            IOLog("[RealtekRTL8111]: Warning: Enable PCIe ASPM.\n");
+            IOLog("Warning: Enable PCIe ASPM.\n");
             provider->setASPMState(this, kIOPCIELinkCtlASPM);
             linuxData.aspm = 1;
         }
@@ -67,7 +67,7 @@ bool RTL8111::initPCIConfigSpace(IOPCIDevice *provider)
     baseMap = provider->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress2, kIOMapInhibitCache);
     
     if (!baseMap) {
-        IOLog("[RealtekRTL8111]: region #2 not an MMIO resource, aborting.\n");
+        IOLog("region #2 not an MMIO resource, aborting.\n");
         goto done;
     }
     baseAddr = reinterpret_cast<volatile void *>(baseMap->getVirtualAddress());
@@ -143,7 +143,7 @@ bool RTL8111::initRTL8111()
     rtl8168_get_mac_version(tp, baseAddr);
     
     if (tp->mcfg == CFG_METHOD_DEFAULT) {
-        DebugLog("[RealtekRTL8111]: Retry chip recognition.\n");
+        DebugLog("Retry chip recognition.\n");
         
         /* In case chip recognition failed clear corresponding bits... */
         WriteReg32(TxConfig, ReadReg32(TxConfig) & ~0x7CF00000);
@@ -152,14 +152,14 @@ bool RTL8111::initRTL8111()
         rtl8168_get_mac_version(tp, baseAddr);
     }
     if (tp->mcfg >= CFG_METHOD_MAX) {
-        DebugLog("[RealtekRTL8111]: Unsupported chip found. Aborting...\n");
+        DebugLog("Unsupported chip found. Aborting...\n");
         goto done;
     }
     tp->chipset =  tp->mcfg;
     
     chipsetNumber = OSNumber::withNumber(tp->chipset, 32);
     
-    if (chipsetNumber) {
+    if (chipsetNumber != NULL) {
         setProperty(kChipsetName, chipsetNumber);
         chipsetNumber->release();
     }
@@ -208,10 +208,10 @@ bool RTL8111::initRTL8111()
             tp->HwPkgDet = (tp->HwPkgDet >> 3) & 0x0F;
             break;
     }
-/*
+    
     if (HW_DASH_SUPPORT_TYPE_3(tp) && tp->HwPkgDet == 0x06)
         tp->eee_enabled = 0;
-*/
+    
     switch (tp->mcfg) {
         case CFG_METHOD_21:
         case CFG_METHOD_22:
@@ -539,14 +539,14 @@ bool RTL8111::initRTL8111()
         }
     }
     if (!is_valid_ether_addr((UInt8 *) macAddr)) {
-        IOLog("[RealtekRTL8111]: Using fallback MAC.\n");
+        IOLog("Using fallback MAC.\n");
         rtl8168_rar_set(tp, fallBackMacAddr.bytes);
     }
     for (i = 0; i < MAC_ADDR_LEN; i++) {
         currMacAddr.bytes[i] = ReadReg8(MAC0 + i);
         origMacAddr.bytes[i] = currMacAddr.bytes[i]; /* keep the original MAC address */
     }
-    IOLog("[RealtekRTL8111]: %s: (Chipset %d), %2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x\n",
+    IOLog("%s: (Chipset %d), %2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x\n",
           rtl_chip_info[tp->chipset].name, tp->chipset,
           origMacAddr.bytes[0], origMacAddr.bytes[1],
           origMacAddr.bytes[2], origMacAddr.bytes[3],
@@ -607,7 +607,7 @@ bool RTL8111::initRTL8111()
 #ifdef DEBUG
     
     if (wolCapable)
-        IOLog("[RealtekRTL8111]: Device is WoL capable.\n");
+        IOLog("Device is WoL capable.\n");
     
 #endif
     
@@ -656,7 +656,7 @@ void RTL8111::disableRTL8111()
     if (linkUp) {
         linkUp = false;
         setLinkStatus(kIONetworkLinkValid);
-        IOLog("[RealtekRTL8111]: Link down on en%u\n", netif->getUnitNumber());
+        IOLog("Link down on en%u\n", netif->getUnitNumber());
     }
 }
 
@@ -1587,11 +1587,9 @@ void RTL8111::setPhyMedium()
     struct rtl8168_private *tp = &linuxData;
     int autoNego = 0;
     int gigaCtrl = 0;
+    int force = 0;
+    int use_default = 0;
 
-    if ((speed != SPEED_1000) && (speed != SPEED_100) && (speed != SPEED_10)) {
-        duplex = DUPLEX_FULL;
-        autoneg = AUTONEG_ENABLE;
-    }
     if (tp->mcfg == CFG_METHOD_29 || tp->mcfg == CFG_METHOD_30 ||
         tp->mcfg == CFG_METHOD_31 || tp->mcfg == CFG_METHOD_32) {
         /* Disable Giga Lite. */
@@ -1604,46 +1602,94 @@ void RTL8111::setPhyMedium()
         rtl8168_mdio_write(tp, 0x1F, 0x0A40);
         rtl8168_mdio_write(tp, 0x1F, 0x0000);
     }
+    if ((speed != SPEED_1000) && (speed != SPEED_100) && (speed != SPEED_10)) {
+        speed = SPEED_1000;
+        duplex = DUPLEX_FULL;
+        autoneg = AUTONEG_ENABLE;
+        use_default = 1;
+    }
     autoNego = rtl8168_mdio_read(tp, MII_ADVERTISE);
     autoNego &= ~(ADVERTISE_10HALF | ADVERTISE_10FULL | ADVERTISE_100HALF | ADVERTISE_100FULL | ADVERTISE_PAUSE_CAP | ADVERTISE_PAUSE_ASYM);
     
     gigaCtrl = rtl8168_mdio_read(tp, MII_CTRL1000);
     gigaCtrl &= ~(ADVERTISE_1000HALF | ADVERTISE_1000FULL);
     
-    if (autoneg == AUTONEG_ENABLE) {
-        /* The default medium has been selected. */
-        gigaCtrl |= ADVERTISE_1000FULL;
-        autoNego |= ADVERTISE_100HALF | ADVERTISE_100FULL | ADVERTISE_10HALF | ADVERTISE_10FULL;
-    } else if (speed == SPEED_1000) {
-        gigaCtrl |= ADVERTISE_1000FULL;
-    } else if (speed == SPEED_100) {
-        if (duplex == DUPLEX_HALF) {
-            autoNego |= ADVERTISE_100HALF;
+    if (tp->HwHasWrRamCodeToMicroP == TRUE) {
+        if ((tp->eee_enabled) && (linuxData.eee_adv_t != 0)) {
+            rtl8168_enable_EEE(tp);
+            DebugLog("Enable EEE support.\n");
         } else {
-            autoNego |=  ADVERTISE_100FULL;
-        }
-    } else { /* speed == SPEED_10 */
-        if (duplex == DUPLEX_HALF) {
-            autoNego |= ADVERTISE_10HALF;
-        } else {
-            autoNego |= ADVERTISE_10FULL;
+            rtl8168_disable_EEE(tp);
+            DebugLog("Disable EEE support.\n");
         }
     }
-    /* Set flow control support. */
-    if (flowCtl == kFlowControlOn)
-        autoNego |= ADVERTISE_PAUSE_CAP|ADVERTISE_PAUSE_ASYM;
+    if (autoneg == AUTONEG_ENABLE) {
+        /* n-way force */
+        if (speed == SPEED_1000) {
+            if (use_default) {
+                /* The default medium has been selected. */
+                gigaCtrl |= ADVERTISE_1000HALF | ADVERTISE_1000FULL;
+                autoNego |= ADVERTISE_100HALF | ADVERTISE_100FULL | ADVERTISE_10HALF | ADVERTISE_10FULL;
+            } else {
+                if (duplex == DUPLEX_HALF) {
+                    gigaCtrl |= ADVERTISE_1000HALF;
+                } else {
+                    gigaCtrl |= ADVERTISE_1000FULL;
+                }
+            }
+        } else if (speed == SPEED_100) {
+            if (duplex == DUPLEX_HALF) {
+                autoNego |= ADVERTISE_100HALF;
+            } else {
+                autoNego |=  ADVERTISE_100FULL;
+            }
+        } else { /* speed == SPEED_10 */
+            if (duplex == DUPLEX_HALF) {
+                autoNego |= ADVERTISE_10HALF;
+            } else {
+                autoNego |= ADVERTISE_10FULL;
+            }
+        }
         
-    tp->phy_auto_nego_reg = autoNego;
-    tp->phy_1000_ctrl_reg = gigaCtrl;
+        /* Set flow control support. */
+        if (flowCtl == kFlowControlOn)
+            autoNego |= ADVERTISE_PAUSE_CAP|ADVERTISE_PAUSE_ASYM;
         
-    rtl8168_mdio_write(tp, 0x1f, 0x0000);
-    rtl8168_mdio_write(tp, MII_ADVERTISE, autoNego);
-    rtl8168_mdio_write(tp, MII_CTRL1000, gigaCtrl);
-    rtl8168_mdio_write(tp, 0x1f, 0x0000);
-    rtl8168_mdio_write(tp, MII_BMCR, BMCR_RESET | BMCR_ANENABLE | BMCR_ANRESTART);
-    mdelay(20);
-
-    tp->autoneg = AUTONEG_ENABLE;
+        tp->phy_auto_nego_reg = autoNego;
+        tp->phy_1000_ctrl_reg = gigaCtrl;
+        
+        /* Setup EEE advertisement. */
+        if (eeeCap) {
+            if ((tp->mcfg >= CFG_METHOD_14) && (tp->mcfg < CFG_METHOD_21)) {
+                rtl8168_mdio_write(&linuxData, 0x0D, 0x0007);
+                rtl8168_mdio_write(&linuxData, 0x0E, 0x003C);
+                rtl8168_mdio_write(&linuxData, 0x0D, 0x4007);
+                rtl8168_mdio_write(&linuxData, 0x0E, linuxData.eee_adv_t);
+                rtl8168_mdio_write(tp, 0x1F, 0x0000);
+            }
+        }
+        rtl8168_mdio_write(tp, 0x1f, 0x0000);
+        rtl8168_mdio_write(tp, MII_ADVERTISE, autoNego);
+        rtl8168_mdio_write(tp, MII_CTRL1000, gigaCtrl);
+        rtl8168_mdio_write(tp, 0x1f, 0x0000);
+        rtl8168_mdio_write(tp, MII_BMCR, BMCR_RESET | BMCR_ANENABLE | BMCR_ANRESTART);
+        mdelay(20);
+    } else {
+        /* true force */
+        if ((speed == SPEED_10) && (duplex == DUPLEX_HALF)) {
+            force = BMCR_SPEED10;
+        } else if ((speed == SPEED_10) && (duplex == DUPLEX_FULL)) {
+            force = BMCR_SPEED10 | BMCR_FULLDPLX;
+        } else if ((speed == SPEED_100) && (duplex == DUPLEX_HALF)) {
+            force = BMCR_SPEED100;
+        } else if ((speed == SPEED_100) && (duplex == DUPLEX_FULL)) {
+            force = BMCR_SPEED100 | BMCR_FULLDPLX;
+        }
+        
+        rtl8168_mdio_write(tp, 0x1f, 0x0000);
+        rtl8168_mdio_write(tp, MII_BMCR, force);
+    }
+    tp->autoneg = autoneg;
     tp->speed = speed;
     tp->duplex = duplex;
     

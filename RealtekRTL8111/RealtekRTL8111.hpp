@@ -1,4 +1,4 @@
-/* RealtekRTL8111.h -- RTL8111 driver class definition.
+/* RealtekRTL8111.hpp -- RTL8111 driver class definition.
  *
  * Copyright (c) 2013 Laura Müller <laura-mueller@uni-duesseldorf.de>
  * All rights reserved.
@@ -116,6 +116,8 @@ typedef struct RtlStatData {
 #define kRxDescMask    (kNumRxDesc - 1)
 #define kTxDescSize    (kNumTxDesc*sizeof(struct RtlDmaDesc))
 #define kRxDescSize    (kNumRxDesc*sizeof(struct RtlDmaDesc))
+#define kRxBufArraySize (kNumRxDesc * sizeof(mbuf_t))
+#define kTxBufArraySize (kNumTxDesc * sizeof(mbuf_t))
 
 /* This is the receive buffer size (must be large enough to hold a packet). */
 #define kRxBufferPktSize    2048
@@ -174,6 +176,7 @@ enum
 };
 
 #define kParamName "Driver Parameters"
+#define kEnableEeeName "enableEEE"
 #define kEnableCSO6Name "enableCSO6"
 #define kEnableTSO4Name "enableTSO4"
 #define kEnableTSO6Name "enableTSO6"
@@ -254,8 +257,12 @@ private:
     void interruptOccurredPoll(OSObject *client, IOInterruptEventSource *src, int count);
     UInt32 rxInterrupt(IONetworkInterface *interface, uint32_t maxCount, IOMbufQueue *pollQueue, void *context);
 
-    bool setupDMADescriptors();
-    void freeDMADescriptors();
+    bool setupRxResources();
+    bool setupTxResources();
+    bool setupStatResources();
+    void freeRxResources();
+    void freeTxResources();
+    void freeStatResources();
     void clearDescriptors();
     void checkLinkStatus();
     void updateStatitics();
@@ -309,14 +316,18 @@ private:
 	IOTimerEventSource *timerSource;
 	IOEthernetInterface *netif;
 	IOMemoryMap *baseMap;
+    IOMapper *mapper;
     volatile void *baseAddr;
     
     /* transmitter data */
     mbuf_t txNext2FreeMbuf;
     IOBufferMemoryDescriptor *txBufDesc;
     IOPhysicalAddress64 txPhyAddr;
+    IODMACommand *txDescDmaCmd;
     struct RtlDmaDesc *txDescArray;
     IOMbufNaturalMemoryCursor *txMbufCursor;
+    mbuf_t *txMbufArray;
+    void *txBufArrayMem;
     UInt64 txDescDoneCount;
     UInt64 txDescDoneLast;
     UInt32 txNextDescIndex;
@@ -326,8 +337,11 @@ private:
     /* receiver data */
     IOBufferMemoryDescriptor *rxBufDesc;
     IOPhysicalAddress64 rxPhyAddr;
+    IODMACommand *rxDescDmaCmd;
     struct RtlDmaDesc *rxDescArray;
-	IOMbufNaturalMemoryCursor *rxMbufCursor;
+    IOMbufNaturalMemoryCursor *rxMbufCursor;
+    mbuf_t *rxMbufArray;
+    void *rxBufArrayMem;
     mbuf_t rxPacketHead;
     mbuf_t rxPacketTail;
     UInt32 rxPacketSize;
@@ -345,6 +359,7 @@ private:
 	IOEthernetStats *etherStats;
     IOBufferMemoryDescriptor *statBufDesc;
     IOPhysicalAddress64 statPhyAddr;
+    IODMACommand *statDescDmaCmd;
     struct RtlStatData *statData;
 
     UInt32 mtu;
@@ -388,8 +403,4 @@ private:
     bool disableASPM;
     
     UInt8 pciPMCtrlOffset;
-
-    /* mbuf_t arrays */
-    mbuf_t txMbufArray[kNumTxDesc];
-    mbuf_t rxMbufArray[kNumRxDesc];
 };
