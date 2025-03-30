@@ -30,7 +30,7 @@ jobs:
         run: |
           src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/Lilu/master/Lilu/Scripts/bootstrap.sh) && eval "$src" || exit 1
 
-      - run: xcodebuild -configuration=Release
+      - run: xcodebuild -arch x86_64 -configuration Release ONLY_ACTIVE_ARCH=NO
       - name: Create Zip of Build Output
         run: |
           cd build/Release
